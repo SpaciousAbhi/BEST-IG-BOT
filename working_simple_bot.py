@@ -431,46 +431,52 @@ This could be because:
             shutil.rmtree(temp_dir)
 
 async def main():
-    max_retries = 5
-    retry_delay = 5
+    """Main function optimized for Heroku deployment"""
+    print("🚀 Starting Instagram Bot for Heroku...")
     
+    # Clear any potential webhook first
+    try:
+        token = Config.BOT_TOKEN
+        clear_url = f"https://api.telegram.org/bot{token}/deleteWebhook"
+        response = requests.post(clear_url, timeout=10)
+        if response.json().get('ok'):
+            print("✅ Webhook cleared successfully")
+    except Exception as e:
+        print(f"⚠️ Webhook clear attempt: {e}")
+    
+    # Simple retry mechanism for Heroku
+    max_retries = 3
     for attempt in range(max_retries):
         try:
-            print(f"🚀 Starting Instagram Bot (attempt {attempt + 1})...")
+            print(f"📡 Connection attempt {attempt + 1}/{max_retries}...")
             await app.start()
-            print("✅ Bot started successfully!")
-            print("🎯 Bot is ready to receive Instagram URLs!")
-            print("📱 Users can now send Instagram links to download content")
+            print("✅ Bot connected successfully!")
+            print("🎯 Ready to process Instagram URLs!")
+            print("📱 Users can now send Instagram links")
             
-            # Keep the bot running and polling for updates
+            # Start polling and stay active
             await idle()
-            break  # Exit the retry loop after successful run
+            return  # Exit function after idle() completes
             
         except BadMsgNotification as e:
-            print(f"⚠️ Time synchronization error: {e}")
+            print(f"⚠️ Time sync error: {e}")
             if attempt < max_retries - 1:
-                print(f"⏰ Waiting {retry_delay} seconds before retry...")
-                await asyncio.sleep(retry_delay)
-                retry_delay *= 2  # Exponential backoff
+                print("⏰ Retrying in 3 seconds...")
+                await asyncio.sleep(3)
             else:
-                print("❌ Failed after all retries. Time sync issue persists.")
+                print("❌ Time sync failed after all retries")
                 raise
                 
         except Exception as e:
-            print(f"❌ Bot error: {e}")
+            print(f"❌ Connection error: {e}")
             if attempt < max_retries - 1:
-                print(f"🔄 Retrying in {retry_delay} seconds...")
-                await asyncio.sleep(retry_delay)
+                print("🔄 Retrying in 2 seconds...")
+                await asyncio.sleep(2)
             else:
-                print("❌ Bot failed to start after all retries.")
+                print("❌ Failed to connect after all retries")
                 raise
-        finally:
-            # Ensure proper cleanup
-            try:
-                if app.is_connected:
-                    await app.stop()
-            except:
-                pass
+    
+    print("❌ Bot startup failed after all attempts")
 
 if __name__ == "__main__":
     asyncio.run(main())
