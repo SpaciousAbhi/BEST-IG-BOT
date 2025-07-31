@@ -44,13 +44,12 @@ def log_activity(activity_type, user_id, username, details):
     
     print(f"📝 {timestamp} | {activity_type} | User: {username} ({user_id}) | {details}")
 
-# Create bot with better error handling
+# Create bot with in-memory session to prevent Heroku conflicts
 app = Client(
-    "instagram_bot_session",
+    ":memory:",  # Use in-memory session to avoid file persistence issues
     api_id=Config.API_ID,
     api_hash=Config.API_HASH,
     bot_token=Config.BOT_TOKEN,
-    workdir="/tmp",
     sleep_threshold=60
 )
 
