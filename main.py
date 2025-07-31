@@ -170,24 +170,32 @@ async def upload_files(client, chat_id, temp_dir, status_msg):
 
 @app.on_message(filters.command("start"))
 async def start_cmd(client, message):
-    text = """
+    session_status = "🔓 Logged in" if session_loaded else "🔒 Login required for private content"
+    text = f"""
 🤖 **Instagram Downloader Bot**
+
+{session_status}
 
 Send me Instagram links and I'll download them for you!
 
 **Supported:**
 📸 Posts & Photos
-🎥 Reels & Videos
+🎥 Reels & Videos  
 🖼️ Profile Pictures
+📚 Stories (requires login)
+🎯 IGTV Videos
 
 **Usage:**
 Just send any Instagram URL like:
 • `https://instagram.com/p/ABC123/`
 • `https://instagram.com/reel/XYZ789/`
+• `https://instagram.com/username/` (for profile pic)
 
 **Commands:**
 /start - Start the bot
 /help - Show help
+/login - Login to Instagram (owner only)
+/status - Check login status
 """
     await message.reply_text(text)
 
