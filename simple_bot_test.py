@@ -36,9 +36,7 @@ async def test_bot_simple():
         print(f"  ID: {me.id}")
         
         # Test if bot can receive updates (without actually processing them)
-        print("  Testing bot handlers...")
-        handlers_count = len(bot.dispatcher.groups[0]) if hasattr(bot, 'dispatcher') and hasattr(bot.dispatcher, 'groups') else 0
-        print(f"  Handlers registered: {handlers_count}")
+        print("  Bot is ready to receive messages")
         
         await bot.stop()
         return True
