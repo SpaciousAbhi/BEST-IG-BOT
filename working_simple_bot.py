@@ -443,8 +443,8 @@ async def main():
             print("🎯 Bot is ready to receive Instagram URLs!")
             print("📱 Users can now send Instagram links to download content")
             
-            # Keep the bot running
-            await asyncio.Event().wait()
+            # Keep the bot running and polling for updates
+            await idle()
             
         except BadMsgNotification as e:
             print(f"⚠️ Time synchronization error: {e}")
