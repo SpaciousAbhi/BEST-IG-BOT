@@ -303,4 +303,9 @@ async def handle_url(client, message):
 
 if __name__ == "__main__":
     print("🚀 Starting Instagram Bot...")
+    
+    # Try to load Instagram session
+    load_instagram_session()
+    
+    print("✅ Bot is ready!")
     app.run()
