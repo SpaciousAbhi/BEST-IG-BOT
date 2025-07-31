@@ -385,6 +385,12 @@ Your bot is ready for service! 🚀"""
 @app.on_message(filters.regex(r'instagram\.com'))
 async def handle_url(client, message):
     url = message.text.strip()
+    user_id = message.from_user.id
+    username = message.from_user.username or "Unknown"
+    
+    # Log the download attempt
+    log_activity("DOWNLOAD_REQUEST", user_id, username, f"Instagram URL: {url}")
+    
     status = await message.reply_text("🔄 Processing Instagram URL...")
     
     temp_dir = f"/tmp/{message.from_user.id}_{uuid.uuid4().hex[:8]}"
@@ -396,9 +402,11 @@ async def handle_url(client, message):
         success = await download_instagram_content(url, temp_dir)
         
         if success:
+            log_activity("DOWNLOAD_SUCCESS", user_id, username, f"Successfully downloaded from: {url}")
             await status.edit_text("📤 Uploading files...")
             await upload_files(client, message.chat.id, temp_dir, status)
         else:
+            log_activity("DOWNLOAD_FAILED", user_id, username, f"Failed to download from: {url}")
             await status.edit_text("""❌ **Download Failed**
 
 This could be because:
@@ -417,6 +425,7 @@ This could be because:
 ✅ https://instagram.com/tv/ABC123/""")
         
     except Exception as e:
+        log_activity("ERROR", user_id, username, f"Exception during download: {str(e)}")
         await status.edit_text(f"❌ Unexpected error: {str(e)}")
     finally:
         if os.path.exists(temp_dir):
