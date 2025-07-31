@@ -1,5 +1,5 @@
 """
-Instagram Content Downloader Bot - Simplified Version
+Instagram Content Downloader Bot - Enhanced Version with Authentication
 Downloads Instagram content from URLs sent by users
 """
 
@@ -15,7 +15,8 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMedi
 from pyrogram.errors import FloodWait
 from config import Config
 from instaloader import Instaloader, Profile, Post
-from instaloader.exceptions import ProfileNotExistsException, LoginRequiredException
+from instaloader.exceptions import ProfileNotExistsException, LoginRequiredException, ConnectionException
+import time
 
 # Bot instance with in-memory session to avoid lock issues
 app = Client(
@@ -26,8 +27,46 @@ app = Client(
 )
 
 # Global instances
-L = Instaloader()
-user_sessions = {}
+L = Instaloader(
+    download_pictures=True,
+    download_videos=True,
+    download_video_thumbnails=False,
+    download_geotags=False,
+    download_comments=False,
+    save_metadata=False,
+    compress_json=False,
+    dirname_pattern="{target}",
+    filename_pattern="{date_utc}_UTC"
+)
+
+# Try to load session if available
+session_loaded = False
+
+def load_instagram_session():
+    """Load Instagram session from environment or file"""
+    global session_loaded
+    if session_loaded:
+        return True
+        
+    # Try to load from environment variable (Heroku)
+    session_file_id = Config.INSTA_SESSIONFILE_ID
+    if session_file_id and Config.USER:
+        try:
+            # In production, you'd download the session file using the file_id
+            # For now, we'll try to load from local file
+            if os.path.exists(Config.USER):
+                L.load_session_from_file(Config.USER)
+                print(f"✅ Instagram session loaded for {Config.USER}")
+                session_loaded = True
+                return True
+        except Exception as e:
+            print(f"❌ Failed to load session: {e}")
+    
+    # Try to login with username if provided but no session
+    if Config.USER and not session_loaded:
+        print(f"⚠️ No session found for {Config.USER}. Authentication required for some content.")
+    
+    return session_loaded
 
 def extract_shortcode(url):
     """Extract shortcode from Instagram URL"""
