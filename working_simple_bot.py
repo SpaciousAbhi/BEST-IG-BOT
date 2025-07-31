@@ -445,6 +445,7 @@ async def main():
             
             # Keep the bot running and polling for updates
             await idle()
+            break  # Exit the retry loop after successful run
             
         except BadMsgNotification as e:
             print(f"⚠️ Time synchronization error: {e}")
@@ -464,8 +465,13 @@ async def main():
             else:
                 print("❌ Bot failed to start after all retries.")
                 raise
-    
-    await app.stop()
+        finally:
+            # Ensure proper cleanup
+            try:
+                if app.is_connected:
+                    await app.stop()
+            except:
+                pass
 
 if __name__ == "__main__":
     asyncio.run(main())
