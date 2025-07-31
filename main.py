@@ -17,13 +17,12 @@ from config import Config
 from instaloader import Instaloader, Profile, Post
 from instaloader.exceptions import ProfileNotExistsException, LoginRequiredException
 
-# Bot instance with unique session name
+# Bot instance with in-memory session to avoid lock issues
 app = Client(
-    f"instagram_bot_{os.getpid()}",  # Use process ID for unique session
+    ":memory:",  # Use in-memory session to avoid file locks
     api_id=Config.API_ID,
     api_hash=Config.API_HASH,
-    bot_token=Config.BOT_TOKEN,
-    workdir="/tmp"  # Store session files in /tmp
+    bot_token=Config.BOT_TOKEN
 )
 
 # Global instances
