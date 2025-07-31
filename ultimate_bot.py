@@ -643,10 +643,27 @@ async def status_cmd(client, message):
 """
     await message.reply_text(text)
 
-if __name__ == "__main__":
+async def main():
+    """Main function to start the bot"""
     print("🚀 Starting Ultimate Instagram Content Downloader...")
     print("✅ All content types supported!")
     print("✅ Maximum anonymous access enabled!")
     print("✅ Smart login guidance active!")
     print("🎯 Bot is ready to handle any Instagram URL!")
-    app.run()
+    
+    # Clear any existing webhook
+    try:
+        await app.start()
+        print("🔧 Clearing any existing webhooks...")
+        await app.delete_webhook()
+        print("✅ Webhooks cleared - using polling mode")
+        await app.stop()
+    except Exception as e:
+        print(f"⚠️ Webhook clear attempt: {e}")
+    
+    # Start in polling mode
+    await app.run()
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
