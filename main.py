@@ -14,7 +14,7 @@ import os
 import re
 import tempfile
 import shutil
-from instaloader import Instaloader, Profile, Post, Reel, StoryItem
+from instaloader import Instaloader, Profile, Post
 from instaloader.exceptions import ProfileNotExistsException, LoginRequiredException
 from utils import download_and_upload_content
 import uuid
