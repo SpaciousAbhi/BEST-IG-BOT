@@ -21,6 +21,28 @@ from datetime import datetime
 print("📋 Bot Configuration:")
 print(f"🔑 API ID: {Config.API_ID}")
 print(f"🤖 Bot Token: {Config.BOT_TOKEN[:20]}...")
+print(f"👑 Owner ID: {Config.OWNER}")
+
+# Simple logging system
+bot_logs = []
+
+def log_activity(activity_type, user_id, username, details):
+    """Log bot activity for admin monitoring"""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_entry = {
+        'timestamp': timestamp,
+        'type': activity_type,
+        'user_id': user_id,
+        'username': username,
+        'details': details
+    }
+    bot_logs.append(log_entry)
+    
+    # Keep only last 50 logs to prevent memory issues
+    if len(bot_logs) > 50:
+        bot_logs.pop(0)
+    
+    print(f"📝 {timestamp} | {activity_type} | User: {username} ({user_id}) | {details}")
 
 # Create bot with better error handling
 app = Client(
