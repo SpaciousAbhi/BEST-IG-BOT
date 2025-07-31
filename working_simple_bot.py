@@ -11,7 +11,7 @@ import shutil
 import glob
 import uuid
 import requests
-from pyrogram import Client, filters
+from pyrogram import Client, filters, idle
 from pyrogram.types import InputMediaPhoto, InputMediaVideo
 from pyrogram.errors import BadMsgNotification, FloodWait
 from config import Config
