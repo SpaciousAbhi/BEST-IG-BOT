@@ -68,6 +68,50 @@ def load_instagram_session():
     
     return session_loaded
 
+async def download_with_retry(post, temp_dir, max_retries=3):
+    """Download post with retry logic and better error handling"""
+    for attempt in range(max_retries):
+        try:
+            L.download_post(post, temp_dir)
+            return True
+        except ConnectionException as e:
+            if "401 Unauthorized" in str(e) or "429" in str(e):
+                print(f"Rate limited or unauthorized, attempt {attempt + 1}/{max_retries}")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                    continue
+                return False
+            elif "Please wait" in str(e):
+                print(f"Instagram rate limit, waiting... Attempt {attempt + 1}/{max_retries}")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(10)  # Wait longer for rate limits
+                    continue
+                return False
+            else:
+                print(f"Connection error: {e}")
+                return False
+        except Exception as e:
+            print(f"Download error: {e}")
+            if attempt < max_retries - 1:
+                await asyncio.sleep(1)
+                continue
+            return False
+    return False
+
+async def download_profile_pic_with_retry(profile, temp_dir, max_retries=3):
+    """Download profile picture with retry logic"""
+    for attempt in range(max_retries):
+        try:
+            L.download_profilepic(profile, temp_dir)
+            return True
+        except Exception as e:
+            print(f"Profile pic download error: {e}")
+            if attempt < max_retries - 1:
+                await asyncio.sleep(1)
+                continue
+            return False
+    return False
+
 def extract_shortcode(url):
     """Extract shortcode from Instagram URL"""
     patterns = [
