@@ -25,7 +25,9 @@ app = Client(
     ":memory:",
     api_id=Config.API_ID,
     api_hash=Config.API_HASH,
-    bot_token=Config.BOT_TOKEN
+    bot_token=Config.BOT_TOKEN,
+    sleep_threshold=60,  # Add sleep threshold
+    max_concurrent_transmissions=1  # Reduce concurrent connections
 )
 
 # Global instances
