@@ -182,10 +182,44 @@ async def upload_files(client, chat_id, temp_dir, status_msg):
         if os.path.exists(temp_dir):
             shutil.rmtree(temp_dir)
 
+@app.on_message(filters.command("logs"))
+async def logs_cmd(client, message):
+    user_id = message.from_user.id
+    if str(user_id) != Config.OWNER:
+        await message.reply_text("❌ Access denied. Owner only command.")
+        return
+    
+    if not bot_logs:
+        await message.reply_text("📝 **Activity Logs**\n\nNo recent activity to display.")
+        return
+    
+    log_text = "📝 **Recent Activity Logs**\n\n"
+    
+    # Show last 10 logs
+    recent_logs = bot_logs[-10:] if len(bot_logs) > 10 else bot_logs
+    
+    for log in reversed(recent_logs):  # Show most recent first
+        log_text += f"🕒 **{log['timestamp']}**\n"
+        log_text += f"📋 Type: {log['type']}\n"
+        log_text += f"👤 User: {log['username']} ({log['user_id']})\n"
+        log_text += f"📄 Details: {log['details']}\n\n"
+    
+    log_text += f"📊 Total logged activities: {len(bot_logs)}"
+    
+    # Split message if too long
+    if len(log_text) > 4000:
+        log_text = log_text[:4000] + "\n\n... (truncated for length)"
+    
+    await message.reply_text(log_text)
+
 @app.on_message(filters.command("start"))
 async def start_cmd(client, message):
     user_id = message.from_user.id
+    username = message.from_user.username or "Unknown"
     is_owner = str(user_id) == Config.OWNER
+    
+    # Log the activity
+    log_activity("COMMAND", user_id, username, "/start command used")
     
     if is_owner:
         text = """🤖 **Instagram Downloader Bot - Admin Panel**
@@ -196,7 +230,7 @@ async def start_cmd(client, message):
 📊 /stats - Bot usage statistics
 🔧 /admin - Admin panel
 💾 /logs - View recent logs
-♻️ /restart - Restart bot services
+🔍 /status - Detailed bot status
 
 **Regular Features:**
 📸 Posts & Photos
