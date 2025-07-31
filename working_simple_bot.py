@@ -161,7 +161,33 @@ async def upload_files(client, chat_id, temp_dir, status_msg):
 
 @app.on_message(filters.command("start"))
 async def start_cmd(client, message):
-    text = """🤖 **Instagram Downloader Bot**
+    user_id = message.from_user.id
+    is_owner = str(user_id) == Config.OWNER
+    
+    if is_owner:
+        text = """🤖 **Instagram Downloader Bot - Admin Panel**
+
+👑 **Welcome Owner!** You have full access to all bot features.
+
+**Admin Commands:**
+📊 /stats - Bot usage statistics
+🔧 /admin - Admin panel
+💾 /logs - View recent logs
+♻️ /restart - Restart bot services
+
+**Regular Features:**
+📸 Posts & Photos
+🎥 Reels & Videos  
+🖼️ IGTV Videos
+
+**Usage:**
+Just send any Instagram URL like:
+• `https://instagram.com/p/ABC123/`
+• `https://instagram.com/reel/XYZ789/`
+
+Your bot is ready for service! 🚀"""
+    else:
+        text = """🤖 **Instagram Downloader Bot**
 
 Send me Instagram links and I'll download them for you!
 
@@ -178,6 +204,7 @@ Just send any Instagram URL like:
 **Note:** This bot works best with public content.
 
 Try sending me an Instagram URL! 🚀"""
+    
     await message.reply_text(text)
 
 @app.on_message(filters.command("help"))
