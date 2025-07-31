@@ -204,17 +204,35 @@ async def help_cmd(client, message):
     text = """
 📋 **Help**
 
+**How to use:**
 1. Send me any Instagram URL
-2. I'll download it automatically
+2. I'll try to download it automatically
 3. For private content, login may be required
 
 **Supported URLs:**
 • Posts: instagram.com/p/ABC123/
 • Reels: instagram.com/reel/XYZ789/
-• Profiles: instagram.com/username/
+• IGTV: instagram.com/tv/ABC123/
+• Profiles: instagram.com/username/ (downloads profile picture)
 
-Just paste the link and I'll handle the rest!
+**Notes:**
+• Some content may require Instagram login
+• Rate limits may apply
+• Large videos may take time to process
+
+**Commands:**
+/start - Start the bot
+/help - Show this help
+/status - Check Instagram login status
 """
+    await message.reply_text(text)
+
+@app.on_message(filters.command("status"))
+async def status_cmd(client, message):
+    if session_loaded:
+        text = "🔓 **Status: Logged in to Instagram**\n\nCan download both public and private content."
+    else:
+        text = "🔒 **Status: Not logged in**\n\nCan only download public content. Some downloads may fail due to Instagram restrictions."
     await message.reply_text(text)
 
 @app.on_message(filters.regex(r'instagram\.com'))
