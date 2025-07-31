@@ -238,42 +238,65 @@ async def status_cmd(client, message):
 @app.on_message(filters.regex(r'instagram\.com'))
 async def handle_url(client, message):
     url = message.text.strip()
-    status = await message.reply_text("🔄 Processing...")
+    status = await message.reply_text("🔄 Processing Instagram URL...")
     
     temp_dir = f"/tmp/{message.from_user.id}_{uuid.uuid4().hex[:8]}"
     os.makedirs(temp_dir, exist_ok=True)
     
     try:
-        # Try to extract shortcode for posts/reels
+        # Try to extract shortcode for posts/reels/IGTV
         shortcode = extract_shortcode(url)
         if shortcode:
             await status.edit_text("📥 Downloading post/reel...")
             try:
                 post = Post.from_shortcode(L.context, shortcode)
-                L.download_post(post, temp_dir)
-                await upload_files(client, message.chat.id, temp_dir, status)
+                
+                # Show post details
+                caption_preview = (post.caption[:100] + "...") if post.caption and len(post.caption) > 100 else (post.caption or "No caption")
+                await status.edit_text(f"📥 Downloading post by @{post.owner_username}\n\n📝 {caption_preview}")
+                
+                success = await download_with_retry(post, temp_dir)
+                if success:
+                    await upload_files(client, message.chat.id, temp_dir, status)
+                else:
+                    if not session_loaded:
+                        await status.edit_text("❌ Download failed. This content may be private or Instagram is rate-limiting.\n\n💡 **Tip:** Owner can use /login to access private content.")
+                    else:
+                        await status.edit_text("❌ Download failed. Content may be unavailable or there's a temporary issue.")
                 return
             except Exception as e:
-                await status.edit_text(f"❌ Download failed: {str(e)}")
+                error_msg = str(e)
+                if "401 Unauthorized" in error_msg or "Please wait" in error_msg:
+                    await status.edit_text("❌ Instagram is blocking requests. This usually happens due to:\n\n• Rate limiting\n• Content is private\n• Instagram API restrictions\n\n⏰ Try again in a few minutes.")
+                elif "not found" in error_msg.lower():
+                    await status.edit_text("❌ Post not found. The link may be incorrect or the post was deleted.")
+                else:
+                    await status.edit_text(f"❌ Download failed: {error_msg}")
                 return
         
         # Try to extract username for profile
         username = extract_username(url)
         if username:
-            await status.edit_text("📥 Downloading profile picture...")
+            await status.edit_text(f"📥 Downloading profile picture for @{username}...")
             try:
                 profile = Profile.from_username(L.context, username)
-                L.download_profilepic(profile, temp_dir)
-                await upload_files(client, message.chat.id, temp_dir, status)
+                success = await download_profile_pic_with_retry(profile, temp_dir)
+                if success:
+                    await upload_files(client, message.chat.id, temp_dir, status)
+                else:
+                    await status.edit_text("❌ Failed to download profile picture. Profile may be private or not exist.")
+                return
+            except ProfileNotExistsException:
+                await status.edit_text("❌ Profile not found. Please check the username.")
                 return
             except Exception as e:
-                await status.edit_text(f"❌ Download failed: {str(e)}")
+                await status.edit_text(f"❌ Profile download failed: {str(e)}")
                 return
                 
-        await status.edit_text("❌ Invalid Instagram URL or unsupported content type.")
+        await status.edit_text("❌ Invalid Instagram URL format.\n\n✅ **Supported formats:**\n• instagram.com/p/ABC123/\n• instagram.com/reel/XYZ789/\n• instagram.com/username/")
         
     except Exception as e:
-        await status.edit_text(f"❌ Error: {str(e)}")
+        await status.edit_text(f"❌ Unexpected error: {str(e)}")
     finally:
         if os.path.exists(temp_dir):
             shutil.rmtree(temp_dir)
