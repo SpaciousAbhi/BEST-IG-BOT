@@ -6,3 +6,4 @@ pyromod
 pytz
 get-video-properties
 ffmpeg-python
+requests
